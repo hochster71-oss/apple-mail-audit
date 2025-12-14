@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  serverExternalPackages: ['imapflow', 'mailparser'],
 };
 
 export default nextConfig;
