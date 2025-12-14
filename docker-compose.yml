@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: mail-audit-postgres
+    environment:
+      POSTGRES_DB: mailaudit
+      POSTGRES_USER: mailaudit
+      POSTGRES_PASSWORD: mailaudit
+    ports:
+      - "5432:5432"
+    volumes:
+      - mailaudit_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mailaudit -d mailaudit"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    container_name: mail-audit-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      APP_URL: http://localhost:3000
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev-nextauth-secret-please-change-12345}
+      DATABASE_URL: postgresql://mailaudit:mailaudit@postgres:5432/mailaudit?schema=public
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-dev-webhook-secret-master}
+      DEV_WEBHOOK_SECRET: ${DEV_WEBHOOK_SECRET:-dev-inbound-secret}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-mistral}
+      ENABLE_RAW_EMAIL_STORAGE: ${ENABLE_RAW_EMAIL_STORAGE:-false}
+      RAW_EMAIL_ENCRYPTION_KEY_BASE64: ${RAW_EMAIL_ENCRYPTION_KEY_BASE64:-}
+      RAW_EMAIL_TTL_DAYS: ${RAW_EMAIL_TTL_DAYS:-7}
+      INBOUND_MAX_BYTES: ${INBOUND_MAX_BYTES:-262144}
+      LLM_TIMEOUT_MS: ${LLM_TIMEOUT_MS:-30000}
+      ICLOUD_EMAIL: ${ICLOUD_EMAIL:-}
+      ICLOUD_APP_PASSWORD: ${ICLOUD_APP_PASSWORD:-}
+      ICLOUD_MAILBOX: ${ICLOUD_MAILBOX:-INBOX}
+      ICLOUD_LIMIT: ${ICLOUD_LIMIT:-250}
+      ICLOUD_SINCE_DAYS: ${ICLOUD_SINCE_DAYS:-365}
+      ICLOUD_SYNC_INTERVAL_MINUTES: ${ICLOUD_SYNC_INTERVAL_MINUTES:-30}
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+
+volumes:
+  mailaudit_pgdata:

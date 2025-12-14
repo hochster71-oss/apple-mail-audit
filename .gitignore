@@ -1,0 +1,16 @@
+node_modules
+.next
+.turbo
+dist
+.env
+.env.*
+!.env.example
+
+# Local scratch
+tmp/
+
+# Prisma
+prisma/dev.db
+
+# Logs
+*.log

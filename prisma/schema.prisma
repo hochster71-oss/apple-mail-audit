@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ParsedItemType {
+  subscription
+  order
+  membership
+  unknown
+}
+
+enum ParsedItemStatus {
+  active
+  likely
+  inactive
+  uncertain
+}
+
+enum AuditEventType {
+  AUTH_LOGIN_SUCCESS
+  AUTH_LOGIN_FAILURE
+  AUTH_LOGOUT
+  USER_EXPORT
+  USER_DELETE
+  INBOUND_ACCEPTED
+  INBOUND_REJECTED
+  INBOUND_DEDUPED
+  PARSE_SUCCESS
+  PARSE_UNCERTAIN
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  forwarding      ForwardingAddress[]
+  inboundEmails   InboundEmail[]
+  parsedItems     ParsedItem[]
+  rawEmailBlobs   RawEmailBlob[]
+  auditLogs       AuditLog[]
+  icloudSync      IcloudSyncConfig?
+}
+
+model ForwardingAddress {
+  id         String   @id @default(cuid())
+  userId     String
+  localPart  String   @unique
+  createdAt  DateTime @default(now())
+  isActive   Boolean  @default(true)
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model InboundEmail {
+  id            String   @id @default(cuid())
+  userId        String
+
+  // Dedup: hash of message-id (or fallback deterministic hash)
+  messageIdHash String
+  receivedAt    DateTime @default(now())
+
+  from          String
+  to            String
+  subject       String
+  date          DateTime?
+  snippet       String
+
+  rawStored     Boolean  @default(false)
+  rawRef        String?
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parsedItems   ParsedItem[]
+  rawEmailBlob  RawEmailBlob?
+  analysis      EmailAnalysis?
+
+  @@unique([userId, messageIdHash])
+  @@index([userId, receivedAt])
+}
+
+model EmailAnalysis {
+  id               String        @id @default(cuid())
+  inboundEmailId   String        @unique
+  summary          String
+  categories       String[]      @default([])
+  risks            String[]      @default([])
+  model            String
+  createdAt        DateTime      @default(now())
+
+  inboundEmail     InboundEmail  @relation(fields: [inboundEmailId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+}
+
+model RawEmailBlob {
+  id          String   @id @default(cuid())
+  userId      String
+  inboundId   String   @unique
+
+  ciphertext  String
+  iv          String
+  tag         String
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inbound     InboundEmail @relation(fields: [inboundId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+model ParsedItem {
+  id              String          @id @default(cuid())
+  userId          String
+  inboundEmailId  String
+
+  type            ParsedItemType
+  status          ParsedItemStatus
+  confidence      Float
+
+  merchant        String
+  product         String
+  amount          Float?
+  currency        String
+  transactionDate DateTime?
+  renewalDate     DateTime?
+  isRecurring     Boolean
+  cancelUrl       String?
+
+  evidenceJson    Json
+  lastSeenAt      DateTime
+  createdAt       DateTime        @default(now())
+
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inboundEmail    InboundEmail    @relation(fields: [inboundEmailId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type, status])
+  @@index([userId, lastSeenAt])
+}
+
+model RateLimitBucket {
+  id          String   @id @default(cuid())
+  key         String
+  windowStart DateTime
+  count       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([key, windowStart])
+  @@index([key])
+}
+
+model AuditLog {
+  id          String         @id @default(cuid())
+  userId      String?
+  type        AuditEventType
+  requestId   String?
+  ip          String?
+  userAgent   String?
+  details     Json
+  createdAt   DateTime       @default(now())
+
+  user        User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+}
+
+model IcloudSyncConfig {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  enabled     Boolean  @default(false)
+  mailbox     String   @default("INBOX")
+  limit       Int      @default(250)
+  sinceDays   Int      @default(365)
+  lastRunAt   DateTime?
+  lastStatus  String?
+  lastError   String?
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([enabled])
+}

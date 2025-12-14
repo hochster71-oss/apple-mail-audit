@@ -1,0 +1,560 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "demo:ingest",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"demo:ingest"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "add-dotenv",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"add",
+				"dotenv"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "demo:ingest",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"demo:ingest"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "probe-localhost",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"-e",
+				"(async()=>{for(const url of ['http://127.0.0.1:3000/','http://localhost:3000/']){try{const r=await fetch(url);const text=await r.text();console.log('\\nURL',url);console.log('status',r.status);console.log('x-powered-by',r.headers.get('x-powered-by'));console.log('server',r.headers.get('server'));console.log('body-snippet',text.slice(0,80).replace(/\\s+/g,' '));}catch(e){console.log('\\nURL',url,'ERROR',e.message);}}})()"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "probe-loopback",
+			"type": "shell",
+			"command": "powershell.exe",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$ErrorActionPreference='Stop'; function Probe($u){ try { $r=Invoke-WebRequest -Uri $u -UseBasicParsing -TimeoutSec 5; $snip=($r.Content -replace '\\s+',' ').Substring(0,[Math]::Min(80,$r.Content.Length)); Write-Host \"URL $u\"; Write-Host \"status $($r.StatusCode)\"; Write-Host \"server $($r.Headers['Server'])\"; Write-Host \"snip $snip\"; } catch { Write-Host \"URL $u ERROR $($_.Exception.Message)\" } }; Probe 'http://127.0.0.1:3000/'; Probe 'http://localhost:3000/';"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "probe-curl",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-i",
+				"http://127.0.0.1:3000/"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "probe-curl-localhost",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-i",
+				"http://localhost:3000/"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "probe-inbound-secret",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"-X",
+				"POST",
+				"http://localhost:3000/api/inbound/email",
+				"-H",
+				"content-type: application/json",
+				"-H",
+				"x-dev-webhook-secret: dev-inbound-secret",
+				"--data-binary",
+				"{\"messageId\":\"<probe-1@local>\",\"from\":\"Test <t@example.com>\",\"to\":\"audit-demo@mail.audit.local\",\"subject\":\"Test\",\"date\":\"2025-12-13T00:00:00.000Z\",\"text\":\"Amount: $1.00\"}"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "demo:ingest",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"demo:ingest"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "curl-inbound-probe",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"-X",
+				"POST",
+				"http://127.0.0.1:3000/api/inbound/email",
+				"-H",
+				"content-type: application/json",
+				"-H",
+				"x-dev-webhook-secret: dev-inbound-secret",
+				"--data-binary",
+				"`@tmp/inbound-probe.json"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "curl-inbound-probe",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"-X",
+				"POST",
+				"http://127.0.0.1:3000/api/inbound/email",
+				"-H",
+				"content-type: application/json",
+				"-H",
+				"x-dev-webhook-secret: dev-inbound-secret",
+				"--data-binary",
+				"`@tmp/inbound-probe.json"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "probe-export",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"http://127.0.0.1:3000/api/user/export"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "who-owns-3000",
+			"type": "shell",
+			"command": "Get-NetTCPConnection",
+			"args": [
+				"-LocalPort",
+				"3000,3001"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "who-owns-3000-detail",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 3000 | Select-Object LocalAddress,LocalPort,State,OwningProcess | Format-Table -AutoSize",
+			"isBackground": false
+		},
+		{
+			"label": "who-are-3000",
+			"type": "shell",
+			"command": "Get-Process -Id 34600,36352 | Select-Object Id,ProcessName,Path | Format-Table -AutoSize",
+			"isBackground": false
+		},
+		{
+			"label": "wsl-shutdown",
+			"type": "shell",
+			"command": "wsl.exe",
+			"args": [
+				"--shutdown"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "who-owns-3000-after",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | Select-Object LocalAddress,LocalPort,State,OwningProcess | Format-Table -AutoSize",
+			"isBackground": false
+		},
+		{
+			"label": "docker-ps",
+			"type": "shell",
+			"command": "docker",
+			"args": [
+				"ps",
+				"--format",
+				"table {{.Names}}\t{{.Image}}\t{{.Ports}}"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "docker-ps-plain",
+			"type": "shell",
+			"command": "docker",
+			"args": [
+				"ps"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "docker-ps-find-3000",
+			"type": "shell",
+			"command": "docker ps --format \"{{.Names}}\\t{{.Ports}}\" | Select-String 3000",
+			"isBackground": false
+		},
+		{
+			"label": "docker-ps-find-3000",
+			"type": "shell",
+			"command": "docker ps --format '{{.Names}}\\t{{.Ports}}' | Select-String 3000",
+			"isBackground": false
+		},
+		{
+			"label": "docker-ps-find-3000-2",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"docker ps --format '{{.Names}}\\t{{.Ports}}' | Select-String 3000"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "docker-ps-findstr-3000",
+			"type": "shell",
+			"command": "cmd.exe",
+			"args": [
+				"/c",
+				"docker ps | findstr 3000"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "docker-ps-findstr-3000-2",
+			"type": "shell",
+			"command": "cmd.exe",
+			"args": [
+				"/c",
+				"docker ps | findstr 3000"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "docker-ps-select-3000",
+			"type": "shell",
+			"command": "docker ps | Select-String 3000",
+			"isBackground": false
+		},
+		{
+			"label": "bind-test-3000-ipv4",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"-e",
+				"require('net').createServer(()=>{}).listen(3000,'127.0.0.1',()=>{console.log('BOUND');setTimeout(()=>process.exit(0),500);}).on('error',e=>{console.error('ERR',e.code,e.message);process.exit(1);});"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "bind-test-run",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"tmp/bindtest.js"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "probe-inbound-missing-secret",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"-X",
+				"POST",
+				"http://127.0.0.1:3000/api/inbound/email",
+				"-H",
+				"content-type: application/json",
+				"--data-binary",
+				"`@tmp/inbound-probe.json"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "docker-compose-up",
+			"type": "shell",
+			"command": "docker",
+			"args": [
+				"compose",
+				"up",
+				"-d"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "probe-inbound-missing-secret-2",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"-X",
+				"POST",
+				"http://127.0.0.1:3000/api/inbound/email",
+				"-H",
+				"content-type: application/json",
+				"--data-binary",
+				"`@tmp/inbound-probe.json"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "probe-inbound-with-secret",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"-X",
+				"POST",
+				"http://127.0.0.1:3000/api/inbound/email",
+				"-H",
+				"content-type: application/json",
+				"-H",
+				"x-dev-webhook-secret: dev-inbound-secret",
+				"--data-binary",
+				"`@tmp/inbound-probe.json"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "demo:ingest-2",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"demo:ingest"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "probe-localhost-inbound",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"-X",
+				"POST",
+				"http://localhost:3000/api/inbound/email",
+				"-H",
+				"content-type: application/json",
+				"--data-binary",
+				"`@tmp/inbound-probe.json"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "test",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"test"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "test-verbose",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"vitest",
+				"run",
+				"--reporter",
+				"verbose"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "test-inbound-only",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"vitest",
+				"run",
+				"tests/api/inbound-email.test.ts",
+				"--reporter",
+				"verbose"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "run-repro-dedup",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"tsx",
+				"tmp/repro-dedup.ts"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "test-again",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"test"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "test-json",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"vitest",
+				"run",
+				"--reporter",
+				"json",
+				"--outputFile",
+				"tmp/vitest-results.json"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "test-fixed",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"test"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "stop-local-3000",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$c = Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1; if ($c) { $pid = $c.OwningProcess; Write-Host \"Stopping PID $pid\"; Stop-Process -Id $pid -Force; Start-Sleep -Seconds 1 } else { Write-Host \"No 127.0.0.1:3000 listener\" }"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "stop-local-3000",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$c = Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1; if ($c) { $procId = $c.OwningProcess; Write-Host \"Stopping PID $procId\"; Stop-Process -Id $procId -Force; Start-Sleep -Seconds 1 } else { Write-Host \"No 127.0.0.1:3000 listener\" }"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "stop-local-3000-2",
+			"type": "shell",
+			"command": "powershell.exe",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$c = Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1; if ($c) { $procId = $c.OwningProcess; Write-Host ('Stopping PID ' + $procId); Stop-Process -Id $procId -Force; Start-Sleep -Seconds 1 } else { Write-Host 'No 127.0.0.1:3000 listener' }"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "typecheck",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"typecheck"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "typecheck",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"typecheck"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "typecheck",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"typecheck"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "add-mailparser",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"add",
+				"mailparser"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "typecheck",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"typecheck"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "add-mailparser-types",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"add",
+				"-D",
+				"@types/mailparser"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "typecheck",
+			"type": "shell",
+			"command": "corepack",
+			"args": [
+				"pnpm",
+				"typecheck"
+			],
+			"isBackground": false
+		}
+	]
+}
