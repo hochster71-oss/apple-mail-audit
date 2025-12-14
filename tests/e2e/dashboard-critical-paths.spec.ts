@@ -2,10 +2,25 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Dashboard Critical Paths", () => {
   test.beforeEach(async ({ page }) => {
-    // Login first (assumes you have test credentials or auth bypass)
+    // Try to login with demo credentials
     await page.goto("/login");
-    // TODO: Add proper authentication flow
-    // For now, skip if auth is required
+    
+    // Check if login form exists
+    const emailField = page.getByLabel("Email");
+    if (await emailField.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await emailField.fill("demo@example.com");
+      await page.getByLabel("Password").fill("demo12345");
+      await page.getByRole("button", { name: /sign in/i }).click();
+      
+      // Wait for navigation to dashboard
+      await page.waitForURL(/dashboard/, { timeout: 5000 }).catch(() => {
+        // If login fails, skip to dashboard directly
+        return page.goto("/dashboard");
+      });
+    } else {
+      // Already logged in or no auth, go to dashboard
+      await page.goto("/dashboard");
+    }
   });
 
   test("sync toggle shows toast feedback on success", async ({ page }) => {
