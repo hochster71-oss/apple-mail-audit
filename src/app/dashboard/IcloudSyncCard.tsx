@@ -68,12 +68,22 @@ export function IcloudSyncCard({
   const enabled = cfg?.enabled ?? false;
   const lastRunIso = cfg?.lastRunAt ?? null;
   const lastRun = lastRunIso ? new Date(lastRunIso) : null;
-  const minutesSince = lastRun ? (Date.now() - lastRun.getTime()) / 60000 : null;
+  
+  // Recalculate freshness every second for live updates (client-side only)
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    // Initialize on mount to avoid hydration mismatch
+    setNow(Date.now());
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const freshness = useMemo(() => {
-    if (!lastRun || !intervalMinutes) return 0;
-    const ratio = Math.max(0, Math.min(1, 1 - (minutesSince ?? 0) / intervalMinutes));
+    if (!lastRun || !intervalMinutes || now === null) return 0;
+    const minutesSince = (now - lastRun.getTime()) / 60000;
+    const ratio = Math.max(0, Math.min(1, 1 - minutesSince / intervalMinutes));
     return Number.isFinite(ratio) ? ratio : 0;
-  }, [lastRun, intervalMinutes, minutesSince]);
+  }, [lastRun, intervalMinutes, now]);
 
   useEffect(() => {
     const svgEl = gaugeRef.current;
