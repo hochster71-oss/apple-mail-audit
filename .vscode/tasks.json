@@ -82,13 +82,13 @@
 				"-i",
 				"-X",
 				"POST",
-				"http://localhost:3000/api/inbound/email",
+				"http://127.0.0.1:3000/api/inbound/email",
 				"-H",
 				"content-type: application/json",
 				"-H",
 				"x-dev-webhook-secret: dev-inbound-secret",
 				"--data-binary",
-				"{\"messageId\":\"<probe-1@local>\",\"from\":\"Test <t@example.com>\",\"to\":\"audit-demo@mail.audit.local\",\"subject\":\"Test\",\"date\":\"2025-12-13T00:00:00.000Z\",\"text\":\"Amount: $1.00\"}"
+				"@tmp/inbound-probe.json"
 			],
 			"isBackground": false
 		},
@@ -117,7 +117,7 @@
 				"-H",
 				"x-dev-webhook-secret: dev-inbound-secret",
 				"--data-binary",
-				"`@tmp/inbound-probe.json"
+				"@tmp/inbound-probe.json"
 			],
 			"isBackground": false
 		},
@@ -136,7 +136,7 @@
 				"-H",
 				"x-dev-webhook-secret: dev-inbound-secret",
 				"--data-binary",
-				"`@tmp/inbound-probe.json"
+				"@tmp/inbound-probe.json"
 			],
 			"isBackground": false
 		},
@@ -289,7 +289,7 @@
 				"-H",
 				"content-type: application/json",
 				"--data-binary",
-				"`@tmp/inbound-probe.json"
+				"@tmp/inbound-probe.json"
 			],
 			"isBackground": false
 		},
@@ -317,7 +317,7 @@
 				"-H",
 				"content-type: application/json",
 				"--data-binary",
-				"`@tmp/inbound-probe.json"
+				"@tmp/inbound-probe.json"
 			],
 			"isBackground": false
 		},
@@ -336,7 +336,7 @@
 				"-H",
 				"x-dev-webhook-secret: dev-inbound-secret",
 				"--data-binary",
-				"`@tmp/inbound-probe.json"
+				"@tmp/inbound-probe.json"
 			],
 			"isBackground": false
 		},
@@ -363,7 +363,7 @@
 				"-H",
 				"content-type: application/json",
 				"--data-binary",
-				"`@tmp/inbound-probe.json"
+				"@tmp/inbound-probe.json"
 			],
 			"isBackground": false
 		},
